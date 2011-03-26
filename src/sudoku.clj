@@ -25,24 +25,36 @@
           (replicate 1 (replicate GRID_WIDTH 1))
           (replicate (- GRID_WIDTH 1 i) (replicate GRID_WIDTH 0))))
 
+(def line-mask (memoize line-mask))
+
 (defn vertical-mask [row]
   (apply bind-columns (line-mask row)))
 
+(def vertical-mask (memoize vertical-mask))
+
 (defn horizontal-mask [column]
   (apply bind-rows (line-mask column)))
+
+(def horizontal-mask (memoize horizontal-mask))
 
 (defn square-range [row]
   (let [i (* SUB_GRID_WIDTH (int (/ row SUB_GRID_WIDTH)))]
   (range i (+ i SUB_GRID_WIDTH))))
 
+(def square-range (memoize square-range))
+
 (defn square-mask [row, column]
   (mult (apply plus (map vertical-mask (square-range column)))
         (apply plus (map horizontal-mask (square-range row)))))
+
+(def square-mask (memoize square-mask))
 
 (defn mask-for [row, column]
   (normalize-matrix (plus (square-mask row column)
                           (horizontal-mask row)
                           (vertical-mask column))))
+
+(def mask-for (memoize mask-for))
 
 (defn values-for-mask [m, mask]
   (map #(int %) (filter #(not (zero? %)) (flatten (to-list (mult m mask))))))
@@ -86,8 +98,8 @@
   (map #(take 2 %) (sort-by #(nth % 2) > (empty-cells m))))
 
 (defn sudoku [m]
-  (pretty-matrix m)
-  (println "\n----------------\n")
+;  (pretty-matrix m)
+;  (println "\n----------------\n")
   (let [cell (first (empty-cells-ordered-by-contraints m))]
   (if (nil? cell)
       m
